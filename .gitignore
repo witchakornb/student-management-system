@@ -1,3 +1,4 @@
 App/go.sum
 App/Dockerfile
 docker-compose.yml
+App/.env
