@@ -17,6 +17,8 @@ func TestNewMySQL(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	
+
 	tests := []struct {
 		name    string
 		cfg     Config
@@ -61,6 +63,12 @@ func TestNewMySQL(t *testing.T) {
 
 // TestMigrate function
 func TestMigrate(t *testing.T) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("Recovered from panic: %v", r)
+		}
+	}()
 
 	// load environment variables
 	if err := config.LoadEnvWithPath("../.env"); err != nil {

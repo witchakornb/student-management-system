@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/witchakornb/student-management-system/Database"
 	"github.com/witchakornb/student-management-system/Entity/User"
+	"github.com/witchakornb/student-management-system/Entity/Student"
 	"github.com/witchakornb/student-management-system/Config"
 )
 
@@ -17,13 +17,7 @@ func main() {
 	}
 		
 	// config database
-	cfg := database.Config{
-		Host:     os.Getenv("DB_HOST"),
-		Port:     os.Getenv("DB_PORT"),
-		Username: os.Getenv("DB_USERNAME"),
-		Password: os.Getenv("DB_PASSWORD"),
-		DBName:   os.Getenv("DB_NAME"),
-	}
+	cfg := database.ConfigDatabase()
 
 	// connect to database
 	db, err := database.NewMySQL(cfg)
@@ -33,9 +27,41 @@ func main() {
 	}
 
 	// migrate database
-	if err := database.Migrate(db, &user.User{}); err != nil {
+	if err := database.Migrate(db, &user.User{}, &student.Student{}); err != nil {
 		fmt.Println(err)
 		return
 	}
 	fmt.Println("Database migrated successfully")
+
+	// Close database connection
+	defer func() {
+		database.Close(db)
+	}()
+
+	// Select all users
+	users := []user.User{}
+	if err := db.Find(&users).Error; err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Users:" , users)
+
+	// Select all students
+	students := []student.Student{}
+	if err := db.Find(&students).Error; err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Students:" , students)
+
+	// Select student by student_id
+	retrievedStudent := student.Student{}
+	if err := db.Preload("User").First(&retrievedStudent, "student_id = ?", "12345").Error; err != nil {
+		fmt.Println("Error retrieving student:", err)
+		return
+	}
+	fmt.Printf("Student: %+v\n", retrievedStudent)
+	fmt.Printf("Student's User Email: %s\n", retrievedStudent.User.Email)
+	
+
 }

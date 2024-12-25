@@ -4,6 +4,9 @@ import (
 	"errors"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"log"
+	"os"
+	"github.com/witchakornb/student-management-system/Config"
 )
 
 // Config struct
@@ -14,6 +17,43 @@ type Config struct {
 	Password string
 	DBName   string
 }
+
+// Function Config Database
+func ConfigDatabase() Config {
+
+	// load environment variables
+	if err := config.LoadEnv(); err != nil {
+		log.Fatal(err)
+	}
+
+	cfg := Config{
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		Username: os.Getenv("DB_USERNAME"),
+		Password: os.Getenv("DB_PASSWORD"),
+		DBName:   os.Getenv("DB_NAME"),
+	}
+	return cfg
+}
+
+// Function Config Database with path
+func ConfigDatabaseWithPath(path string) Config {
+	
+	// load environment variables
+	if err := config.LoadEnvWithPath(path); err != nil {
+		log.Fatal(err)
+	}
+
+	cfg := Config{
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		Username: os.Getenv("DB_USERNAME"),
+		Password: os.Getenv("DB_PASSWORD"),
+		DBName:   os.Getenv("DB_NAME"),
+	}
+	return cfg
+}
+
 
 // NewMySQL function
 func NewMySQL(cfg Config) (*gorm.DB, error) {
@@ -38,10 +78,20 @@ func NewMySQL(cfg Config) (*gorm.DB, error) {
 	return db, nil
 }
 
+
 // Migrate function
 func Migrate(db *gorm.DB, models ...interface{}) error {
 	if db == nil {
 		return errors.New("database connection is nil")
 	}
 	return db.AutoMigrate(models...)
+}
+
+// Close function
+func Close(db *gorm.DB) error {
+	sqlDB, err := db.DB()
+	if err != nil {
+		return errors.New("failed to get database instance: " + err.Error())
+	}
+	return sqlDB.Close()
 }
